@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PlusCircle, Trash2, LogOut, Bell, Calendar, Tag } from "lucide-react";
+import { PlusCircle, Trash2, LogOut, Bell, Calendar, Tag, Upload, Image as ImageIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
 interface Notification {
@@ -24,7 +24,10 @@ export function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [logoUrl, setLogoUrl] = useState("");
   const [principalImageUrl, setPrincipalImageUrl] = useState("");
+  const [hodImageUrl, setHodImageUrl] = useState("");
+  const [tpoImageUrl, setTpoImageUrl] = useState("");
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [uploadingField, setUploadingField] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -73,6 +76,52 @@ export function AdminDashboard() {
       data.forEach(s => settings[s.id] = s.value);
       setLogoUrl(settings.logo_url || "");
       setPrincipalImageUrl(settings.principal_image_url || "");
+      setHodImageUrl(settings.hod_image_url || "");
+      setTpoImageUrl(settings.tpo_image_url || "");
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert("File size too large. Please upload an image smaller than 2MB.");
+      return;
+    }
+
+    setUploadingField(field);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `site-assets/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('assets')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        if (uploadError.message.includes("bucket not found")) {
+          throw new Error("Storage bucket 'assets' not found. Please create a public bucket named 'assets' in your Supabase dashboard.");
+        }
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('assets')
+        .getPublicUrl(filePath);
+
+      if (field === 'logo') setLogoUrl(publicUrl);
+      if (field === 'principal') setPrincipalImageUrl(publicUrl);
+      if (field === 'hod') setHodImageUrl(publicUrl);
+      if (field === 'tpo') setTpoImageUrl(publicUrl);
+
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      alert(err.message || "Failed to upload image. Please try again.");
+    } finally {
+      setUploadingField(null);
     }
   };
 
@@ -82,7 +131,9 @@ export function AdminDashboard() {
     try {
       const updates = [
         { id: 'logo_url', value: logoUrl },
-        { id: 'principal_image_url', value: principalImageUrl }
+        { id: 'principal_image_url', value: principalImageUrl },
+        { id: 'hod_image_url', value: hodImageUrl },
+        { id: 'tpo_image_url', value: tpoImageUrl }
       ];
 
       for (const update of updates) {
@@ -240,39 +291,161 @@ export function AdminDashboard() {
           <Card className="shadow-xl border-none rounded-3xl overflow-hidden mt-8">
             <CardHeader className="bg-slate-100 p-6">
               <CardTitle className="text-lg flex items-center gap-2">
-                <Tag className="text-purple-600" size={20} />
-                Site Assets
+                <ImageIcon className="text-purple-600" size={20} />
+                Site Assets & Photos
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <form onSubmit={handleSaveSettings} className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase text-slate-500">Logo URL</label>
-                  <Input 
-                    placeholder="Paste logo image URL..."
-                    value={logoUrl}
-                    onChange={(e) => setLogoUrl(e.target.value)}
-                    className="rounded-xl"
-                  />
+              <form onSubmit={handleSaveSettings} className="space-y-6">
+                {/* Logo */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase text-slate-500">College Logo</label>
+                    {logoUrl && <img src={logoUrl} alt="Preview" className="w-8 h-8 rounded-full border border-slate-200 object-cover" />}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Paste logo URL..."
+                      value={logoUrl}
+                      onChange={(e) => setLogoUrl(e.target.value)}
+                      className="rounded-xl flex-1"
+                    />
+                    <div className="relative">
+                      <input 
+                        type="file" 
+                        id="logo-upload" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, 'logo')}
+                      />
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="rounded-xl"
+                        onClick={() => document.getElementById('logo-upload')?.click()}
+                        disabled={uploadingField === 'logo'}
+                      >
+                        {uploadingField === 'logo' ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase text-slate-500">Principal Image URL</label>
-                  <Input 
-                    placeholder="Paste principal image URL..."
-                    value={principalImageUrl}
-                    onChange={(e) => setPrincipalImageUrl(e.target.value)}
-                    className="rounded-xl"
-                  />
+
+                {/* Principal */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase text-slate-500">Principal Photo</label>
+                    {principalImageUrl && <img src={principalImageUrl} alt="Preview" className="w-8 h-8 rounded-full border border-slate-200 object-cover" />}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Paste photo URL..."
+                      value={principalImageUrl}
+                      onChange={(e) => setPrincipalImageUrl(e.target.value)}
+                      className="rounded-xl flex-1"
+                    />
+                    <div className="relative">
+                      <input 
+                        type="file" 
+                        id="principal-upload" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, 'principal')}
+                      />
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="rounded-xl"
+                        onClick={() => document.getElementById('principal-upload')?.click()}
+                        disabled={uploadingField === 'principal'}
+                      >
+                        {uploadingField === 'principal' ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
+
+                {/* HOD */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase text-slate-500">HOD Photo</label>
+                    {hodImageUrl && <img src={hodImageUrl} alt="Preview" className="w-8 h-8 rounded-full border border-slate-200 object-cover" />}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Paste photo URL..."
+                      value={hodImageUrl}
+                      onChange={(e) => setHodImageUrl(e.target.value)}
+                      className="rounded-xl flex-1"
+                    />
+                    <div className="relative">
+                      <input 
+                        type="file" 
+                        id="hod-upload" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, 'hod')}
+                      />
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="rounded-xl"
+                        onClick={() => document.getElementById('hod-upload')?.click()}
+                        disabled={uploadingField === 'hod'}
+                      >
+                        {uploadingField === 'hod' ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* TPO */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold uppercase text-slate-500">TPO Head Photo</label>
+                    {tpoImageUrl && <img src={tpoImageUrl} alt="Preview" className="w-8 h-8 rounded-full border border-slate-200 object-cover" />}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Paste photo URL..."
+                      value={tpoImageUrl}
+                      onChange={(e) => setTpoImageUrl(e.target.value)}
+                      className="rounded-xl flex-1"
+                    />
+                    <div className="relative">
+                      <input 
+                        type="file" 
+                        id="tpo-upload" 
+                        className="hidden" 
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e, 'tpo')}
+                      />
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="rounded-xl"
+                        onClick={() => document.getElementById('tpo-upload')?.click()}
+                        disabled={uploadingField === 'tpo'}
+                      >
+                        {uploadingField === 'tpo' ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
                 <Button 
                   type="submit" 
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-xl py-6 font-bold"
                   disabled={isSavingSettings}
                 >
-                  {isSavingSettings ? "Saving..." : "Update Assets"}
+                  {isSavingSettings ? "Saving..." : "Update All Assets"}
                 </Button>
                 <p className="text-[10px] text-slate-400 italic text-center">
-                  Note: Paste direct links to images (e.g. from Unsplash or your college site).
+                  Tip: You can paste a URL or click the upload icon to select an image from your device.
                 </p>
               </form>
             </CardContent>
