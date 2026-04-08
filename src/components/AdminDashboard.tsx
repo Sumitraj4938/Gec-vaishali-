@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, addDoc, query, orderBy, onSnapshot, deleteDoc, doc, Timestamp } from "firebase/firestore";
-import { auth, db } from "../../lib/firebase";
-import { signOut } from "firebase/auth";
+import { supabase } from "../../lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusCircle, Trash2, LogOut, Bell, Calendar, Tag } from "lucide-react";
-import { format, subDays } from "date-fns";
+import { format } from "date-fns";
 
 interface Notification {
   id: string;
   title: string;
   content: string;
-  date: any;
+  date: string;
   category: string;
 }
 
@@ -27,26 +25,49 @@ export function AdminDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribeAuth = auth.onAuthStateChanged((user) => {
-      if (!user) {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate("/admin/login");
+      }
+    };
+
+    checkAuth();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
         navigate("/admin/login");
       }
     });
 
-    const q = query(collection(db, "notifications"), orderBy("date", "desc"));
-    const unsubscribeDocs = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Notification[];
-      setNotifications(docs);
-    });
+    fetchNotifications();
+
+    // Subscribe to real-time changes
+    const channel = supabase
+      .channel('notifications_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
+        fetchNotifications();
+      })
+      .subscribe();
 
     return () => {
-      unsubscribeAuth();
-      unsubscribeDocs();
+      authListener.subscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, [navigate]);
+
+  const fetchNotifications = async () => {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .order('date', { ascending: false });
+    
+    if (error) {
+      console.error("Error fetching notifications:", error);
+    } else {
+      setNotifications(data || []);
+    }
+  };
 
   const handleAddNotification = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,12 +75,19 @@ export function AdminDashboard() {
     setIsLoading(true);
 
     try {
-      await addDoc(collection(db, "notifications"), {
-        title,
-        content,
-        category,
-        date: Timestamp.now()
-      });
+      const { error } = await supabase
+        .from('notifications')
+        .insert([
+          {
+            title,
+            content,
+            category,
+            date: new Date().toISOString()
+          }
+        ]);
+
+      if (error) throw error;
+      
       setTitle("");
       setContent("");
     } catch (err) {
@@ -72,7 +100,12 @@ export function AdminDashboard() {
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this notification?")) {
       try {
-        await deleteDoc(doc(db, "notifications", id));
+        const { error } = await supabase
+          .from('notifications')
+          .delete()
+          .eq('id', id);
+        
+        if (error) throw error;
       } catch (err) {
         console.error("Error deleting:", err);
       }
@@ -80,7 +113,7 @@ export function AdminDashboard() {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
+    await supabase.auth.signOut();
     navigate("/admin/login");
   };
 

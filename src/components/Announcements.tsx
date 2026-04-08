@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react";
-import { collection, query, orderBy, onSnapshot, where, Timestamp } from "firebase/firestore";
-import { db } from "../../lib/firebase";
+import { supabase } from "../../lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Megaphone, Calendar } from "lucide-react";
-import { subDays, isAfter } from "date-fns";
+import { Megaphone } from "lucide-react";
+import { subDays, isAfter, parseISO } from "date-fns";
 
 interface Notification {
   id: string;
   title: string;
   content: string;
-  date: any;
+  date: string;
   category: string;
 }
 
@@ -20,29 +19,40 @@ export function Announcements() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const sevenDaysAgo = subDays(new Date(), 7);
-    const q = query(
-      collection(db, "notifications"),
-      orderBy("date", "desc")
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const allDocs = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Notification[];
+    const fetchNotices = async () => {
+      const sevenDaysAgo = subDays(new Date(), 7);
       
-      // Filter for last 7 days on the client side to ensure real-time accuracy with local time
-      const filtered = allDocs.filter(doc => {
-        const docDate = doc.date?.toDate ? doc.date.toDate() : new Date();
-        return isAfter(docDate, sevenDaysAgo);
-      });
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .order('date', { ascending: false });
 
-      setNotices(filtered);
+      if (error) {
+        console.error("Error fetching notices:", error);
+      } else {
+        // Filter for last 7 days on the client side
+        const filtered = (data || []).filter((doc: Notification) => {
+          const docDate = parseISO(doc.date);
+          return isAfter(docDate, sevenDaysAgo);
+        });
+        setNotices(filtered);
+      }
       setIsLoading(false);
-    });
+    };
 
-    return () => unsubscribe();
+    fetchNotices();
+
+    // Subscribe to real-time changes
+    const channel = supabase
+      .channel('announcements_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
+        fetchNotices();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   return (

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../../lib/firebase";
+import { supabase } from "../../lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -20,11 +19,17 @@ export function AdminLogin() {
     setError("");
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (loginError) throw loginError;
+      
       navigate("/admin/dashboard");
     } catch (err: any) {
       console.error("Login error:", err);
-      setError("Invalid email or password. Please try again.");
+      setError(err.message || "Invalid email or password. Please try again.");
     } finally {
       setIsLoading(false);
     }
