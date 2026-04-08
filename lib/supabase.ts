@@ -4,7 +4,11 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Check if we have the required credentials before initializing
-const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+export const isSupabaseConfigured = Boolean(
+  import.meta.env.VITE_SUPABASE_URL && 
+  import.meta.env.VITE_SUPABASE_ANON_KEY &&
+  !import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
+);
 
 if (!isSupabaseConfigured) {
   console.warn(

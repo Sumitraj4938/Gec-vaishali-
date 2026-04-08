@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Lock, Mail, AlertCircle } from "lucide-react";
+import { Lock, Mail, AlertCircle, Settings } from "lucide-react";
 
 export function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -19,6 +19,10 @@ export function AdminLogin() {
     setError("");
 
     try {
+      if (!isSupabaseConfigured) {
+        throw new Error("Supabase is not configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables.");
+      }
+
       const { error: loginError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -29,7 +33,13 @@ export function AdminLogin() {
       navigate("/admin/dashboard");
     } catch (err: any) {
       console.error("Login error:", err);
-      setError(err.message || "Invalid email or password. Please try again.");
+      let message = err.message || "Invalid email or password. Please try again.";
+      
+      if (message.includes("Failed to fetch")) {
+        message = "Connection failed. This usually means the Supabase URL is incorrect or the project is paused. Please check your environment variables.";
+      }
+      
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -38,6 +48,18 @@ export function AdminLogin() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
       <Card className="w-full max-w-md shadow-2xl border-none rounded-3xl overflow-hidden">
+        {!isSupabaseConfigured && (
+          <div className="bg-amber-50 border-b border-amber-100 p-4 flex items-start gap-3">
+            <Settings className="text-amber-600 mt-0.5 shrink-0" size={18} />
+            <div>
+              <p className="text-sm font-bold text-amber-900">Configuration Required</p>
+              <p className="text-xs text-amber-700 mt-1">
+                Supabase keys are missing. Go to <b>Settings &gt; Secrets</b> to add them. 
+                (If on Vercel, add them to your project dashboard).
+              </p>
+            </div>
+          </div>
+        )}
         <CardHeader className="bg-slate-900 text-white p-8 text-center">
           <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
             <Lock className="text-slate-900" size={32} />
