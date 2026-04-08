@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -19,10 +19,6 @@ export function AdminLogin() {
     setError("");
 
     try {
-      if (!isSupabaseConfigured) {
-        throw new Error("Supabase is not configured. Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your environment variables.");
-      }
-
       const { error: loginError } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -104,16 +100,6 @@ export function AdminLogin() {
 
         </CardContent>
       </Card>
-
-      <div className="mt-8">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate("/")}
-          className="text-slate-500 hover:text-slate-900"
-        >
-          ← Back to Portal
-        </Button>
-      </div>
     </div>
   );
 }
