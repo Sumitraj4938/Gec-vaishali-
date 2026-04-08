@@ -11,9 +11,15 @@ export function Footer() {
           Government Engineering College, Vaishali, Bihar - 844101
         </p>
         
-        <p className="text-slate-900 text-xs md:text-sm font-bold tracking-[0.2em] uppercase">
+        <p className="text-slate-900 text-xs md:text-sm font-bold tracking-[0.2em] uppercase mb-4">
           © 2026 OFFICIAL TPO PORTAL • GECV
         </p>
+        
+        <div className="flex justify-center gap-4">
+          <a href="/admin/login" className="text-[10px] text-slate-300 hover:text-blue-600 transition-colors uppercase font-bold tracking-widest">
+            Admin Access
+          </a>
+        </div>
       </div>
     </footer>
   );

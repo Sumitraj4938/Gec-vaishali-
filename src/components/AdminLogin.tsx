@@ -91,8 +91,37 @@ export function AdminLogin() {
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
+
+          <div className="mt-8 pt-6 border-t border-slate-100">
+            <h4 className="text-sm font-bold text-slate-900 mb-2 uppercase tracking-tight flex items-center gap-2">
+              <AlertCircle size={14} className="text-blue-600" /> First Time Setup?
+            </h4>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              To log in, you must manually create an admin user in your 
+              <a 
+                href="https://supabase.com/dashboard/project/rwabptypnzvyjvzuzqde/auth/users" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 font-bold hover:underline mx-1"
+              >
+                Supabase Auth Dashboard
+              </a>.
+              Use the email <span className="font-mono bg-slate-100 px-1 rounded text-slate-900">shivamshivamraj.1985@gmail.com</span> 
+              and set your preferred password.
+            </p>
+          </div>
         </CardContent>
       </Card>
+      
+      <div className="mt-8">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate("/")}
+          className="text-slate-500 hover:text-slate-900"
+        >
+          ← Back to Portal
+        </Button>
+      </div>
     </div>
   );
 }

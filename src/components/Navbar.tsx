@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Home, Bell, Award, Menu } from "lucide-react";
+import { Home, Bell, Award, Menu, X } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useSettings } from "@/lib/useSettings";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { settings } = useSettings();
 
   useEffect(() => {
@@ -46,16 +47,43 @@ export function Navbar() {
           </div>
         </div>
 
+        {/* Desktop Menu */}
         <div className="hidden lg:flex items-center gap-10">
           <NavLink label="Home" active />
           <NavLink label="Notification" />
           <NavLink label="Achievement" />
         </div>
 
-        <Button variant="ghost" size="icon" className="lg:hidden text-white">
-          <Menu size={28} />
+        {/* Mobile Menu Toggle */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="lg:hidden text-white hover:bg-white/10"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
         </Button>
       </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMenuOpen && (
+        <div className="lg:hidden absolute top-full left-0 w-full bg-[#0a192f] border-t border-white/10 shadow-2xl animate-in slide-in-from-top duration-300">
+          <div className="flex flex-col p-6 space-y-4">
+            <MobileNavLink label="Home" active onClick={() => setIsMenuOpen(false)} />
+            <MobileNavLink label="Notification" onClick={() => setIsMenuOpen(false)} />
+            <MobileNavLink label="Achievement" onClick={() => setIsMenuOpen(false)} />
+            <div className="pt-4 border-t border-white/10">
+              <a 
+                href="/admin/login" 
+                className="text-yellow-400 font-bold text-sm uppercase tracking-widest hover:text-white transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Admin Access
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
@@ -69,6 +97,20 @@ function NavLink({ label, active = false }: { label: string; active?: boolean })
       }`}
     >
       <span>{label}</span>
+    </a>
+  );
+}
+
+function MobileNavLink({ label, active = false, onClick }: { label: string; active?: boolean; onClick: () => void }) {
+  return (
+    <a
+      href="#"
+      onClick={onClick}
+      className={`text-lg font-bold tracking-widest transition-all uppercase block py-2 ${
+        active ? "text-yellow-400" : "text-white/80"
+      }`}
+    >
+      {label}
     </a>
   );
 }
