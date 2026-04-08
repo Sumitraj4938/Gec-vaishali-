@@ -22,6 +22,9 @@ export function AdminDashboard() {
   const [content, setContent] = useState("");
   const [category, setCategory] = useState("Placement");
   const [isLoading, setIsLoading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState("");
+  const [principalImageUrl, setPrincipalImageUrl] = useState("");
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,6 +44,7 @@ export function AdminDashboard() {
     });
 
     fetchNotifications();
+    fetchSettings();
 
     // Subscribe to real-time changes
     const channel = supabase
@@ -55,6 +59,45 @@ export function AdminDashboard() {
       supabase.removeChannel(channel);
     };
   }, [navigate]);
+
+  const fetchSettings = async () => {
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('*');
+    
+    if (error) {
+      console.error("Error fetching settings:", error);
+    } else if (data) {
+      const settings: Record<string, string> = {};
+      data.forEach(s => settings[s.id] = s.value);
+      setLogoUrl(settings.logo_url || "");
+      setPrincipalImageUrl(settings.principal_image_url || "");
+    }
+  };
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingSettings(true);
+    try {
+      const updates = [
+        { id: 'logo_url', value: logoUrl },
+        { id: 'principal_image_url', value: principalImageUrl }
+      ];
+
+      for (const update of updates) {
+        const { error } = await supabase
+          .from('site_settings')
+          .upsert(update);
+        if (error) throw error;
+      }
+      alert("Settings updated successfully!");
+    } catch (err) {
+      console.error("Error saving settings:", err);
+      alert("Failed to save settings. Make sure the 'site_settings' table exists in Supabase.");
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
 
   const fetchNotifications = async () => {
     const { data, error } = await supabase
@@ -190,6 +233,48 @@ export function AdminDashboard() {
                 >
                   {isLoading ? "Posting..." : "Post Notification"}
                 </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Site Settings Card */}
+          <Card className="shadow-xl border-none rounded-3xl overflow-hidden mt-8">
+            <CardHeader className="bg-slate-100 p-6">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Tag className="text-purple-600" size={20} />
+                Site Assets
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <form onSubmit={handleSaveSettings} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase text-slate-500">Logo URL</label>
+                  <Input 
+                    placeholder="Paste logo image URL..."
+                    value={logoUrl}
+                    onChange={(e) => setLogoUrl(e.target.value)}
+                    className="rounded-xl"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase text-slate-500">Principal Image URL</label>
+                  <Input 
+                    placeholder="Paste principal image URL..."
+                    value={principalImageUrl}
+                    onChange={(e) => setPrincipalImageUrl(e.target.value)}
+                    className="rounded-xl"
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-xl py-6 font-bold"
+                  disabled={isSavingSettings}
+                >
+                  {isSavingSettings ? "Saving..." : "Update Assets"}
+                </Button>
+                <p className="text-[10px] text-slate-400 italic text-center">
+                  Note: Paste direct links to images (e.g. from Unsplash or your college site).
+                </p>
               </form>
             </CardContent>
           </Card>

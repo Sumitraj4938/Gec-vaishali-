@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Home, Bell, Award, Menu } from "lucide-react";
 import React, { useState, useEffect } from "react";
+import { useSettings } from "@/lib/useSettings";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const { settings } = useSettings();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -12,6 +14,8 @@ export function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const logoUrl = settings.logo_url || "https://api.dicebear.com/7.x/initials/svg?seed=GECV&backgroundColor=ffffff&fontFamily=Arial&fontSize=45&bold=true&fontColor=0a192f";
 
   return (
     <nav
@@ -26,9 +30,9 @@ export function Navbar() {
           <div className="relative">
             <div className="absolute -inset-1 bg-yellow-400 rounded-full blur opacity-25"></div>
             <img
-              src="https://gecvaishali.org.in/wp-content/uploads/2021/06/gec-logo.png"
+              src={logoUrl}
               alt="GEC Vaishali Logo"
-              className="relative w-14 h-14 rounded-full border-2 border-yellow-400 shadow-lg bg-white"
+              className="relative w-14 h-14 rounded-full border-2 border-yellow-400 shadow-lg bg-white p-1"
               referrerPolicy="no-referrer"
             />
           </div>

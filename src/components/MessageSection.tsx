@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "motion/react";
 import React from "react";
+import { useSettings } from "@/lib/useSettings";
 
 interface MessageCardProps {
   image: string;
@@ -11,11 +12,13 @@ interface MessageCardProps {
 }
 
 export function MessageSection() {
+  const { settings } = useSettings();
+  
   const messages: MessageCardProps[] = [
     {
       name: "DR. ANANT KUMAR",
       title: "Message by Principal Sir",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400&h=500",
+      image: settings.principal_image_url || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400&h=500",
       message: "It gives me immense pleasure to welcome you to the Training and Placement Portal. Our institution is deeply committed to academic excellence, innovation, and the holistic development of every student. This Portal defines the professional trajectory of our students, ensuring they are not just degree holders but industry-ready leaders prepared for global challenges.",
       reverse: false
     },
