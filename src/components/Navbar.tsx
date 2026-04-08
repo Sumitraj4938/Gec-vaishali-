@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Home, Bell, Award, Menu, X } from "lucide-react";
+import { Home, Bell, Award, Menu, X, Shield } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useSettings } from "@/lib/useSettings";
+import { motion, AnimatePresence } from "motion/react";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -52,6 +53,12 @@ export function Navbar() {
           <NavLink label="Home" active />
           <NavLink label="Notification" />
           <NavLink label="Achievement" />
+          <a 
+            href="/admin/login" 
+            className="flex items-center gap-2 bg-yellow-400 text-slate-900 px-4 py-2 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-white transition-all"
+          >
+            <Shield size={14} /> Admin
+          </a>
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -66,24 +73,31 @@ export function Navbar() {
       </div>
 
       {/* Mobile Menu Overlay */}
-      {isMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-[#0a192f] border-t border-white/10 shadow-2xl animate-in slide-in-from-top duration-300">
-          <div className="flex flex-col p-6 space-y-4">
-            <MobileNavLink label="Home" active onClick={() => setIsMenuOpen(false)} />
-            <MobileNavLink label="Notification" onClick={() => setIsMenuOpen(false)} />
-            <MobileNavLink label="Achievement" onClick={() => setIsMenuOpen(false)} />
-            <div className="pt-4 border-t border-white/10">
-              <a 
-                href="/admin/login" 
-                className="text-yellow-400 font-bold text-sm uppercase tracking-widest hover:text-white transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Admin Access
-              </a>
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="lg:hidden absolute top-full left-0 w-full bg-[#0a192f] border-t border-white/10 shadow-2xl overflow-hidden"
+          >
+            <div className="flex flex-col p-6 space-y-4">
+              <MobileNavLink label="Home" active onClick={() => setIsMenuOpen(false)} />
+              <MobileNavLink label="Notification" onClick={() => setIsMenuOpen(false)} />
+              <MobileNavLink label="Achievement" onClick={() => setIsMenuOpen(false)} />
+              <div className="pt-4 border-t border-white/10">
+                <a 
+                  href="/admin/login" 
+                  className="flex items-center justify-center gap-2 w-full bg-yellow-400 text-slate-900 py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-white transition-all"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Shield size={18} /> Admin Access
+                </a>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }
