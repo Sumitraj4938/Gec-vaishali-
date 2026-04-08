@@ -1,15 +1,49 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { collection, query, orderBy, onSnapshot, where, Timestamp } from "firebase/firestore";
+import { db } from "../../lib/firebase";
+import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { ExternalLink, Megaphone, ChevronRight } from "lucide-react";
+import { Megaphone, Calendar } from "lucide-react";
+import { subDays, isAfter } from "date-fns";
+
+interface Notification {
+  id: string;
+  title: string;
+  content: string;
+  date: any;
+  category: string;
+}
 
 export function Announcements() {
-  const notices = [
-    { id: 2, text: "Industry Visit to NHAI project sites scheduled for next month." },
-    { id: 3, text: "Upload updated resumes to the Portal for review." },
-    { id: 1, text: "Mandatory Soft Skills Training sessions commence this Friday." }
-  ];
+  const [notices, setNotices] = useState<Notification[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const sevenDaysAgo = subDays(new Date(), 7);
+    const q = query(
+      collection(db, "notifications"),
+      orderBy("date", "desc")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const allDocs = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Notification[];
+      
+      // Filter for last 7 days on the client side to ensure real-time accuracy with local time
+      const filtered = allDocs.filter(doc => {
+        const docDate = doc.date?.toDate ? doc.date.toDate() : new Date();
+        return isAfter(docDate, sevenDaysAgo);
+      });
+
+      setNotices(filtered);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
     <section className="py-20 bg-white">
@@ -53,18 +87,34 @@ export function Announcements() {
                 <span className="text-yellow-400 font-bold text-sm tracking-widest uppercase">OFFICIAL NOTICE BOARD</span>
               </div>
               
-              <div className="space-y-8">
-                {notices.map((notice, index) => (
-                  <div key={index} className="flex gap-4">
-                    <div className="flex flex-col items-center">
-                      <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                      {index !== notices.length - 1 && <div className="w-0.5 h-full bg-yellow-400/30 mt-2"></div>}
-                    </div>
-                    <p className="text-slate-200 font-medium italic leading-relaxed">
-                      {notice.id}. {notice.text}
-                    </p>
+              <div className="space-y-8 min-h-[200px]">
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-full py-10">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-400"></div>
                   </div>
-                ))}
+                ) : notices.length > 0 ? (
+                  notices.map((notice, index) => (
+                    <div key={notice.id} className="flex gap-4 group">
+                      <div className="flex flex-col items-center">
+                        <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                        {index !== notices.length - 1 && <div className="w-0.5 h-full bg-yellow-400/30 mt-2"></div>}
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-slate-200 font-medium italic leading-relaxed">
+                          {notice.title}
+                        </p>
+                        <p className="text-slate-400 text-xs italic">
+                          {notice.content}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-10">
+                    <Megaphone className="mx-auto text-slate-600 mb-4" size={32} />
+                    <p className="text-slate-400 italic">No new notices in the last 7 days.</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -1,0 +1,23 @@
+{
+  "entities": {
+    "Notification": {
+      "title": "Notification",
+      "description": "A notification or announcement for students",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The title of the notification" },
+        "content": { "type": "string", "description": "The detailed content of the notification" },
+        "date": { "type": "string", "format": "date-time", "description": "The date the notification was posted" },
+        "category": { "type": "string", "description": "The category of the notification (e.g. Placement, Training)" },
+        "link": { "type": "string", "format": "uri", "description": "Optional link for more information" }
+      },
+      "required": ["title", "content", "date", "category"]
+    }
+  },
+  "firestore": {
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "Collection of notifications"
+    }
+  }
+}

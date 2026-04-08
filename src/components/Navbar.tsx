@@ -26,9 +26,9 @@ export function Navbar() {
           <div className="relative">
             <div className="absolute -inset-1 bg-yellow-400 rounded-full blur opacity-25"></div>
             <img
-              src="https://picsum.photos/seed/gec-logo/100/100"
-              alt="GEC Logo"
-              className="relative w-14 h-14 rounded-full border-2 border-yellow-400 shadow-lg"
+              src="https://gecvaishali.org.in/wp-content/uploads/2021/06/gec-logo.png"
+              alt="GEC Vaishali Logo"
+              className="relative w-14 h-14 rounded-full border-2 border-yellow-400 shadow-lg bg-white"
               referrerPolicy="no-referrer"
             />
           </div>
