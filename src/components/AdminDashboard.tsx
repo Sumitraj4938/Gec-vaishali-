@@ -47,8 +47,9 @@ export function AdminDashboard() {
     fetchSettings();
 
     // Subscribe to real-time changes
+    const channelId = Math.random().toString(36).substring(7);
     const channel = supabase
-      .channel('notifications_changes')
+      .channel(`notifications_changes_${channelId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
         fetchNotifications();
       })
