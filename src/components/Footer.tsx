@@ -12,7 +12,7 @@ export function Footer() {
         </p>
         
         <p className="text-slate-900 text-xs md:text-sm font-bold tracking-[0.2em] uppercase mb-4">
-          © 2026 OFFICIAL TPO PORTAL • GECV
+          © 2026 OFFICIAL TPO PORTAL • GECV • Developed by Shivam Raj
         </p>
         
         <div className="flex justify-center gap-4">
