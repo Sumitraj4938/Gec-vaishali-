@@ -1,24 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const getSupabaseConfig = () => {
+  const envUrl = import.meta.env.VITE_SUPABASE_URL;
+  const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  
+  // Check localStorage for manual overrides (useful if environment variables fail)
+  const localUrl = typeof window !== 'undefined' ? localStorage.getItem('SUPABASE_URL_OVERRIDE') : null;
+  const localKey = typeof window !== 'undefined' ? localStorage.getItem('SUPABASE_KEY_OVERRIDE') : null;
 
-// Check if we have the required credentials before initializing
-export const isSupabaseConfigured = Boolean(
-  import.meta.env.VITE_SUPABASE_URL && 
-  import.meta.env.VITE_SUPABASE_ANON_KEY &&
-  !import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
-);
+  const url = envUrl && !envUrl.includes('placeholder') ? envUrl : (localUrl || 'https://placeholder.supabase.co');
+  const key = envKey && !envKey.includes('placeholder') ? envKey : (localKey || 'placeholder-key');
 
-if (!isSupabaseConfigured) {
-  console.warn(
-    'Supabase configuration is missing. Please ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in your environment variables.'
-  );
-}
+  return { url, key, isConfigured: url !== 'https://placeholder.supabase.co' && key !== 'placeholder-key' };
+};
 
-// Initialize with placeholders if missing to prevent "supabaseUrl is required" crash
-// The app will show warnings but won't crash on load
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
-);
+const config = getSupabaseConfig();
+
+export const isSupabaseConfigured = config.isConfigured;
+
+export const supabase = createClient(config.url, config.key);

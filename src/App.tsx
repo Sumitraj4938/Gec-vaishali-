@@ -6,6 +6,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
+import { StatsSection } from "./components/StatsSection";
 import { MessageSection } from "./components/MessageSection";
 import { Announcements } from "./components/Announcements";
 import { Footer } from "./components/Footer";
@@ -19,6 +20,7 @@ function HomePage() {
       <Navbar />
       <main>
         <Hero />
+        <StatsSection />
         <MessageSection />
         <Announcements />
       </main>

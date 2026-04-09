@@ -26,7 +26,7 @@ export function MessageSection() {
       name: "MR. MUKESH KUMAR ROY",
       title: "Message by HOD Sir",
       image: settings.hod_image_url || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400&h=500",
-      message: "It gives me immense pleasure to welcome you to the Training and Placement Portal. Our institution is deeply committed to academic excellence, innovation, and the holistic development of every student. This Portal defines the professional trajectory of our students, ensuring they are not just degree holders but industry-ready leaders prepared for global challenges.",
+      message: "As the Head of the Civil Engineering Department, I am proud to see our students excelling in both technical knowledge and practical application. This portal is a testament to our department's dedication to ensuring that every student finds a path that matches their skills and aspirations. We focus on building strong foundations that support lifelong career growth.",
       reverse: true
     },
     {

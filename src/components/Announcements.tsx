@@ -3,7 +3,7 @@ import { supabase } from "../../lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Megaphone } from "lucide-react";
+import { Bell, Megaphone, Calendar, ArrowRight } from "lucide-react";
 import { subDays, isAfter, parseISO } from "date-fns";
 
 interface Notification {
@@ -104,16 +104,21 @@ export function Announcements() {
                   </div>
                 ) : notices.length > 0 ? (
                   notices.map((notice, index) => (
-                    <div key={notice.id} className="flex gap-4 group">
+                    <div key={notice.id} className="flex gap-4 group hover:translate-x-1 transition-transform">
                       <div className="flex flex-col items-center">
-                        <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                        {index !== notices.length - 1 && <div className="w-0.5 h-full bg-yellow-400/30 mt-2"></div>}
+                        <div className="w-2 h-2 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)]"></div>
+                        {index !== notices.length - 1 && <div className="w-0.5 h-full bg-yellow-400/20 mt-2"></div>}
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-slate-200 font-medium italic leading-relaxed">
+                      <div className="space-y-1 pb-6">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black text-yellow-400 uppercase tracking-tighter bg-yellow-400/10 px-2 py-0.5 rounded">
+                            {notice.category}
+                          </span>
+                        </div>
+                        <p className="text-slate-100 font-bold italic leading-tight">
                           {notice.title}
                         </p>
-                        <p className="text-slate-400 text-xs italic">
+                        <p className="text-slate-400 text-xs italic line-clamp-2">
                           {notice.content}
                         </p>
                       </div>
@@ -121,8 +126,8 @@ export function Announcements() {
                   ))
                 ) : (
                   <div className="text-center py-10">
-                    <Megaphone className="mx-auto text-slate-600 mb-4" size={32} />
-                    <p className="text-slate-400 italic">No new notices in the last 7 days.</p>
+                    <Bell className="mx-auto text-slate-700 mb-4 opacity-50" size={48} />
+                    <p className="text-slate-500 italic font-medium">No new notices in the last 7 days.</p>
                   </div>
                 )}
               </div>
@@ -132,8 +137,4 @@ export function Announcements() {
       </div>
     </section>
   );
-}
-
-function Bell({ className }: { className?: string }) {
-  return <Megaphone className={className} />;
 }
