@@ -2,11 +2,10 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# Run and deploy Raj sumit
 
 This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/49f66d50-86dd-476d-a0ff-6810cea8fe10
+0
 
 ## Run Locally
 
